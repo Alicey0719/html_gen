@@ -7,9 +7,8 @@ def generate_header_html(model, model_twitter, char, content_title, event_name, 
     header_html = f'''
 {model} (<a title="" target="_blank" href="https://x.com/{model_twitter}">@{model_twitter}</a>) <br />
 <span class="css-1jxf684 r-bcqeeo r-1ttztb7 r-qvutc0 r-1tl8opc">
-    <span class="css-1jxf684 r-bcqeeo r-1ttztb7 r-qvutc0 r-1tl8opc">{char}</span>
-&nbsp;/ {content_title}</span> <br />
-{event_date} {event_name} <br /><br />
+    <span class="css-1jxf684 r-bcqeeo r-1ttztb7 r-qvutc0 r-1tl8opc">{char}</span>&nbsp;/ {content_title}</span> <br />
+    {event_date} {event_name} <br /><br />
 '''
     return header_html
 
@@ -57,8 +56,7 @@ def generate_image_html(imgtitle, imgdir, cdn, cdn_path, max_width, max_height, 
         html += f'''
 <a href="https://chaos.alicey.dev/share/{cdn_path}/{img_file}" title="{title}" target="_blank">
     <img src="https://chaos.alicey.dev/share/{cdn_path}/{img_file}" width="{new_width}" height="{new_height}" border="0" alt="{title}" hspace="5" class="pict">
-</a>
-<br />
+<br /></a><br />
 '''
     return html
 
