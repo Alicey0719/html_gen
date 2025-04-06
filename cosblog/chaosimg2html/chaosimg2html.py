@@ -58,7 +58,7 @@ def generate_image_html(imgtitle, imgdir, cdn, cdn_path, max_width, max_height, 
 <a href="https://chaos.alicey.dev/share/{cdn_path}/{img_file}" title="{title}" target="_blank">
     <img src="https://chaos.alicey.dev/share/{cdn_path}/{img_file}" width="{new_width}" height="{new_height}" border="0" alt="{title}" hspace="5" class="pict">
 </a>
-<br/>
+<br />
 '''
     return html
 
