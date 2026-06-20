@@ -114,6 +114,7 @@ def generate_footer_html(camera, lenz):
         "ILCE-7M4": ("Sony α7Ⅳ", "https://amzn.to/3EFX9cp"),
     }
     lenz_map = {
+        "SEL70200GM2": ("Sony FE 70-200mm GM OSS II", "https://yahoo.jp/xxWKeU"),
         "SIGMA2470DGDNART": ("Sigma 24-70 DG DN Art", "https://amzn.to/4i8VPO3"),
     }
 
