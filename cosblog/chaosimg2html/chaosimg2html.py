@@ -1,7 +1,26 @@
 import os
 import sys
 import argparse
-from PIL import Image
+from PIL import Image, ImageOps
+
+
+THUMB_SUFFIX = "_small"
+THUMB_EXT = ".webp"
+THUMB_SCALE = 2  # Retina/HiDPI 対応で表示サイズの2倍
+
+
+def make_thumbnail(img_path, target_w, target_h):
+    base, _ = os.path.splitext(os.path.basename(img_path))
+    out_name = f"{base}{THUMB_SUFFIX}{THUMB_EXT}"
+    out_path = os.path.join(os.path.dirname(img_path), out_name)
+
+    with Image.open(img_path) as img:
+        img = ImageOps.exif_transpose(img)
+        thumb_w = target_w * THUMB_SCALE
+        thumb_h = target_h * THUMB_SCALE
+        img.thumbnail((thumb_w, thumb_h), Image.LANCZOS)
+        img.save(out_path, format="WEBP", quality=85, method=6)
+    return out_name
 
 
 def generate_header_html(
@@ -25,6 +44,7 @@ def generate_image_html(
     max_height,
     max_width_landscape,
     max_height_landscape,
+    compress,
 ):
     # 画像ディレクトリが存在するかチェック
     if not os.path.isdir(imgdir):
@@ -36,13 +56,21 @@ def generate_image_html(
         f for f in os.listdir(imgdir) if os.path.isfile(os.path.join(imgdir, f))
     ]
 
-    # 拡張子が画像ファイルのものだけフィルタリング
-    img_files = [f for f in img_files if f.lower().endswith(("jpeg", "jpg", "png"))]
+    # 拡張子が画像ファイルのものだけフィルタリング (既存サムネは除外)
+    thumb_marker = f"{THUMB_SUFFIX}{THUMB_EXT}"
+    img_files = [
+        f
+        for f in img_files
+        if f.lower().endswith(("jpeg", "jpg", "png"))
+        and not f.lower().endswith(thumb_marker)
+    ]
 
     # 画像ファイルが見つからなかった場合
     if not img_files:
         print(f"No image files found in the directory '{imgdir}'.")
         return
+
+    cdn_base = f"{cdn.rstrip('/')}/{cdn_path.strip('/')}"
 
     # 画像ファイルごとにHTMLを生成
     html = ""
@@ -63,13 +91,19 @@ def generate_image_html(
             new_width = int(width * ratio)
             new_height = int(height * ratio)
 
+        # サムネ生成 (compress=True のみ)
+        if compress:
+            src_file = make_thumbnail(img_path, new_width, new_height)
+        else:
+            src_file = img_file
+
         # タイトルを作成
         title = f"{imgtitle}_{os.path.splitext(img_file)[0]}"
 
-        # HTMLの生成
+        # HTMLの生成 (src=サムネ, href=元画像)
         html += f"""
-<a href="https://chaos.alicey.dev/share/{cdn_path}/{img_file}" title="{title}" target="_blank">
-    <img src="https://chaos.alicey.dev/share/{cdn_path}/{img_file}" width="{new_width}" height="{new_height}" border="0" alt="{title}" hspace="5" class="pict">
+<a href="{cdn_base}/{img_file}" title="{title}" target="_blank">
+    <img src="{cdn_base}/{src_file}" width="{new_width}" height="{new_height}" border="0" alt="{title}" hspace="5" class="pict">
 <br /></a><br />
 """
     return html
@@ -110,6 +144,12 @@ def main():
 
     ## option
     # img
+    parser.add_argument(
+        "--compress",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Generate small WebP thumbnails and link to originals (default: True)",
+    )
     parser.add_argument(
         "--cdn",
         type=str,
@@ -201,6 +241,7 @@ def main():
             args.event_date,
         )
         print(r)
+
     # image
     r = generate_image_html(
         args.imgtitle,
@@ -211,6 +252,7 @@ def main():
         args.max_height,
         args.max_width_landscape,
         args.max_height_landscape,
+        args.compress,
     )
     print(r)
     # footer
